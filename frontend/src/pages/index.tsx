@@ -6,7 +6,7 @@ export default function Index() {
   const [proxyList, setProxyList] = createStore([
     {
       proxy: 'http://example.com:8080',
-      time: 0,
+      time: 9999.99,
       check: false,
       status: false,
       log: '',
@@ -40,13 +40,17 @@ export default function Index() {
       return
     // 检查代理
     CheckProxy(proxyList[0].proxy).then((res) => {
+      console.log(res)
+
       setProxyList(0, 'check', true)
-      setProxyList(0, 'status', res)
-      setProxyList(0, 'log', '检测成功')
+      setProxyList(0, 'status', res.status)
+      setProxyList(0, 'time', res.time)
+      setProxyList(0, 'log', res.info)
     }).catch((err) => {
       setProxyList(0, 'check', true)
       setProxyList(0, 'status', false)
       setProxyList(0, 'log', err)
+      setProxyList(0, 'time', 9999.99)
       throw err
     })
   }

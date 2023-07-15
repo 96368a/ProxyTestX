@@ -23,7 +23,6 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 	proxyUtils := &utils.Proxy{}
-
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:             "ProxyTestX",
