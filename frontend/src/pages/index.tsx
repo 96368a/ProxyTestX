@@ -59,7 +59,7 @@ export default function Index() {
             placeholder="input your proxy"
             type="text"
             value={proxy()}
-            class="outline-active:none my-2 w-250px border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
+            class="outline-active:none my-2 min-w-60 w-120 border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
             onInput={e => formatProxy(e.currentTarget.value)}
             onKeyDown={({ key }) => key === 'Enter' && checkProxy()}
             autocomplete="off"
@@ -87,13 +87,13 @@ export default function Index() {
         <div class="overflow-x-auto lg:-mx-8 sm:-mx-6">
           <div class="min-w-full lg:px-8 sm:px-6">
             <div class="overflow-hidden">
-              <table class="min-w-full table-auto text-left text-sm font-light">
+              <table class="w-full table-fixed text-left text-sm font-light">
                 <thead class="border-b font-medium dark:border-neutral-500">
                   <tr>
-                    <th scope="col" class="min-w-60 w-60 px-6 py-4">代理地址</th>
+                    <th scope="col" class="min-w-60 w-100 px-6 py-4">代理地址</th>
                     <th scope="col" class="w-40 px-6 py-4">延迟</th>
-                    <th scope="col" class="w-40 px-6 py-4">状态</th>
-                    <th scope="col" class="w-40 px-6 py-4">测试日志</th>
+                    <th scope="col" class="w-60 px-6 py-4">状态</th>
+                    <th scope="col" class="px-6 py-4">测试日志</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -104,9 +104,9 @@ export default function Index() {
                           'border-b': i() !== proxyList.length - 1,
                         }
                       }>
-                        <td class="whitespace-nowrap px-6 py-4 font-medium">{item.proxy}</td>
-                        <td class="whitespace-nowrap px-6 py-4">{item.time}ms</td>
-                        <td class="whitespace-nowrap px-6 py-4">
+                        <td class="w-100 whitespace-nowrap px-6 py-4 font-medium">{item.proxy}</td>
+                        <td class="w-40 whitespace-nowrap px-6 py-4">{item.time}ms</td>
+                        <td class="w-60 whitespace-nowrap px-6 py-4">
                           <Show when={item.check}
                             fallback={
                               <div class="flex items-center gap-1">
