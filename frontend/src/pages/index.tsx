@@ -1,8 +1,16 @@
 import { CheckProxy } from '@wailsjs/go/utils/Proxy'
+import Url from 'url-parse'
 
 export default function Index() {
-  const [proxy, setProxy] = createSignal('')
+  const [proxy, setProxy] = createStore({
+    host: 'example.com',
+    port: '8080',
+    protocol: 'http:',
+  })
+  // const proxyUrl = new Url('http://example.com:8080')
   const [isFormat, setIsFormat] = createSignal(true)
+  const [pattern, setPattern] = createSignal(true)
+  const [spin, setSpin] = createSignal(false)
   const [proxyList, setProxyList] = createStore([
     {
       proxy: 'http://example.com:8080',
@@ -12,36 +20,33 @@ export default function Index() {
       log: '',
     },
   ])
+
+  // 判断当前输入的代理格式是否正确
   const formatProxy = (value: string) => {
     if (value === '' || value.match(/^(http|https|socks5):\/\/\w+(\.\w+)*(:[0-9]+)?$/)) {
       setIsFormat(true)
-      setProxy(value)
+      const proxyUrl = new Url(value)
+      setProxy('host', proxyUrl.hostname)
+      setProxy('port', proxyUrl.port)
+      setProxy('protocol', proxyUrl.protocol)
     }
     else { setIsFormat(false) }
   }
+
+  // 检查代理方法
   const checkProxy = () => {
-    // CheckProxy(proxy()).then((res) => {
-    //   setIsCheck(true)
-    //   setProxyStatus(res)
-    // }).catch((err) => {
-    //   setIsCheck(true)
-    //   setProxyStatus(false)
-    //   throw err
-    // })
     // 检查代理是否改变
-    if (proxy() !== proxyList[0].proxy) {
-      setProxyList(0, 'proxy', proxy())
-      setProxyList(0, 'check', false)
-      setProxyList(0, 'status', false)
-      setProxyList(0, 'log', '检测中...')
-    }
+    // if (proxy() !== proxyList[0].proxy) {
+    setProxyList(0, 'proxy', `${proxy.protocol}//${proxy.host}:${proxy.port}`)
+    setProxyList(0, 'check', false)
+    setProxyList(0, 'status', false)
+    setProxyList(0, 'log', '检测中...')
+    // }
     // 检查是否已经检查过
-    if (proxyList[0].check)
-      return
+    // if (proxyList[0].check)
+    //   return
     // 检查代理
     CheckProxy(proxyList[0].proxy).then((res) => {
-      console.log(res)
-
       setProxyList(0, 'check', true)
       setProxyList(0, 'status', res.status)
       setProxyList(0, 'time', res.time)
@@ -54,25 +59,69 @@ export default function Index() {
       throw err
     })
   }
+  const changePattern = () => {
+    setSpin(true)
+    setPattern(!pattern())
+    setTimeout(() => {
+      setSpin(false)
+    }, 400)
+  }
   return (
-    <div >
+    <div>
       <div class="my-4">
-        <div>
-          <input
-            id="input"
-            placeholder="input your proxy"
-            type="text"
-            value={proxy()}
-            class="outline-active:none my-2 min-w-60 w-120 border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
-            onInput={e => formatProxy(e.currentTarget.value)}
-            onKeyDown={({ key }) => key === 'Enter' && checkProxy()}
-            autocomplete="off"
-          />
+        <div class='flex items-center justify-center gap-4'>
+          <div class='h-10 min-w-120 flex items-center'>
+            <Show when={pattern()} fallback={
+              <input
+                placeholder="input your proxy"
+                type="text"
+                value={`${proxy.protocol}//${proxy.host}:${proxy.port}`}
+                class="outline-active:none min-w-60 w-full border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
+                onInput={e => formatProxy(e.currentTarget.value)}
+                onKeyDown={({ key }) => key === 'Enter' && checkProxy()}
+                autocomplete="off"
+              />}>
+              <div class='flex items-center gap-1'>
+                <div class="relative mx-4 h-10">
+                  <select value={proxy.protocol.replace(':', '')}
+                  onchange={e => setProxy('protocol', `${e.currentTarget.value}:`)}
+                  class="h-full w-30 border border-blue-gray-200 rounded-2 px-3 py-2.5 text-center text-sm text-blue-gray-700 outline-0 outline transition-all disabled:border-0 focus:border-2 placeholder-shown:border focus:border-pink-500 placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:outline-0 empty:!bg-red-500">
+                    <option class="text-left">http</option>
+                    <option class="text-left">socks5</option>
+                  </select>
+                </div>
+                <input
+                placeholder="address"
+                type="text"
+                value={proxy.host}
+                class="outline-active:none min-w-60 w-full border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
+                onInput={e => setProxy('host', e.currentTarget.value)}
+                onKeyDown={({ key }) => key === 'Enter' && checkProxy()}
+                autocomplete="off"
+                />
+                :
+                <input
+                placeholder="port"
+                type="text"
+                value={proxy.port}
+                class="outline-active:none min-w-20 border border-dark:gray-700 border-gray-200 border-rounded bg-transparent px-4 py-2 text-center outline-none"
+                onInput={e => setProxy('port', e.currentTarget.value)}
+                onKeyDown={({ key }) => key === 'Enter' && checkProxy()}
+                autocomplete="off"
+                />
+              </div>
+            </Show>
+          </div>
+          <div onclick={changePattern} class="cursor-pointer" classList={{
+            'animate-[spin_300ms_ease-in-out]': spin(),
+          }}>
+            <div class="i-carbon-partition-auto" />
+          </div>
         </div>
         <div class='h-20'>
-        <Show when={!isFormat()}>
-          <span class='text-red-500'>请输入正确的代理格式</span>
-        </Show>
+          <Show when={!isFormat()}>
+            <span class='text-red-500'>请输入正确的代理格式</span>
+          </Show>
         </div>
       </div>
       {/* <div class="mx-auto my-4 w-100 flex justify-center gap-4 rounded text-xl shadow">
@@ -108,7 +157,7 @@ export default function Index() {
                           'border-b': i() !== proxyList.length - 1,
                         }
                       }>
-                        <td class="w-100 whitespace-nowrap px-6 py-4 font-medium">{item.proxy}</td>
+                        <td class="w-100 overflow-hidden text-ellipsis whitespace-nowrap px-6 py-4 font-medium">{item.proxy}</td>
                         <td class="w-40 whitespace-nowrap px-6 py-4">{item.time}ms</td>
                         <td class="w-60 whitespace-nowrap px-6 py-4">
                           <Show when={item.check}
