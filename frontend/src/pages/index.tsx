@@ -7,10 +7,10 @@ export default function Index() {
     port: '8080',
     protocol: 'http:',
   })
-  // const proxyUrl = new Url('http://example.com:8080')
   const [isFormat, setIsFormat] = createSignal(true)
   const [pattern, setPattern] = createSignal(true)
   const [spin, setSpin] = createSignal(false)
+  const [checking, setChecking] = createSignal(false)
   const [proxyList, setProxyList] = createStore([
     {
       proxy: 'http://example.com:8080',
@@ -34,37 +34,44 @@ export default function Index() {
   }
 
   // 检查代理方法
-  const checkProxy = () => {
-    // 检查代理是否改变
-    // if (proxy() !== proxyList[0].proxy) {
+  const checkProxy = async () => {
+    if (checking())
+      return
+
+    setChecking(true)
     setProxyList(0, 'proxy', `${proxy.protocol}//${proxy.host}:${proxy.port}`)
     setProxyList(0, 'check', false)
     setProxyList(0, 'status', false)
     setProxyList(0, 'log', '检测中...')
-    // }
-    // 检查是否已经检查过
-    // if (proxyList[0].check)
-    //   return
-    // 检查代理
-    CheckProxy(proxyList[0].proxy).then((res) => {
-      setProxyList(0, 'check', true)
-      setProxyList(0, 'status', res.status)
-      setProxyList(0, 'time', res.time)
-      setProxyList(0, 'log', res.info)
-    }).catch((err) => {
-      setProxyList(0, 'check', true)
-      setProxyList(0, 'status', false)
-      setProxyList(0, 'log', err)
-      setProxyList(0, 'time', 9999.99)
-      throw err
-    })
+
+    const res = await CheckProxy(proxyList[0].proxy)
+    // console.log(res)
+    setChecking(false)
+    setProxyList(0, 'check', true)
+    setProxyList(0, 'status', res.status)
+    setProxyList(0, 'time', res.time)
+    setProxyList(0, 'log', res.info)
+    // .then((res) => {
+    //   setProxyList(0, 'check', true)
+    //   setProxyList(0, 'status', res.status)
+    //   setProxyList(0, 'time', res.time)
+    //   setProxyList(0, 'log', res.info)
+    // }).catch((err) => {
+    //   setProxyList(0, 'check', true)
+    //   setProxyList(0, 'status', false)
+    //   setProxyList(0, 'log', err)
+    //   setProxyList(0, 'time', 9999.99)
+    //   throw err
+    // })
   }
   const changePattern = () => {
     setSpin(true)
-    setPattern(!pattern())
+    setTimeout(() => {
+      setPattern(!pattern())
+    }, 100)
     setTimeout(() => {
       setSpin(false)
-    }, 400)
+    }, 500)
   }
   return (
     <div>
@@ -113,29 +120,25 @@ export default function Index() {
             </Show>
           </div>
           <div onclick={changePattern} class="cursor-pointer" classList={{
-            'animate-[spin_300ms_ease-in-out]': spin(),
+            'animate-[spin_500ms_ease-in-out]': spin(),
           }}>
-            <div class="i-carbon-partition-auto" />
+            <div class="i-carbon-partition-auto text-xs" />
           </div>
         </div>
-        <div class='h-20'>
+        <div class='h-6'>
           <Show when={!isFormat()}>
             <span class='text-red-500'>请输入正确的代理格式</span>
           </Show>
         </div>
+        <div class='mb-8'>
+          <button class='btn' onclick={checkProxy} disabled={checking()}>
+            <Show when={checking()}>
+            <div class="i-mdi-loading mx-2 inline-block animate-spin vertical-text-bottom"></div>
+            </Show>
+            检查代理
+            </button>
+        </div>
       </div>
-      {/* <div class="mx-auto my-4 w-100 flex justify-center gap-4 rounded text-xl shadow">
-        <div w-80>{proxy()}</div>
-        <Show when={isCheck()}
-          fallback={<div class="i-carbon-warning-square" />}
-        >
-          <Show when={proxyStatus()} fallback={
-            <div class="i-carbon-error" bg-red />
-          }>
-            <div class="i-carbon-checkmark-outline bg-green" />
-          </Show>
-        </Show>
-      </div> */}
       <div class="flex flex-col rounded shadow dark:bg-gray-700 dark:shadow-gray-900">
         <div class="overflow-x-auto lg:-mx-8 sm:-mx-6">
           <div class="min-w-full lg:px-8 sm:px-6">

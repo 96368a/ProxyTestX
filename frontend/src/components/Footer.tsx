@@ -9,7 +9,7 @@ export default function Footer() {
       <a
         class="i-carbon-logo-github icon-btn"
         rel="noreferrer"
-        href="https://github.com/nanakura/vitesse-lite-solidjs"
+        href="https://github.com/96368a/ProxyTestX"
         target="_blank"
         title="GitHub"
       />
