@@ -7,19 +7,31 @@ export default function Index() {
     port: '8080',
     protocol: 'http:',
   })
-  const [isFormat, setIsFormat] = createSignal(true)
-  const [pattern, setPattern] = createSignal(true)
-  const [spin, setSpin] = createSignal(false)
-  const [checking, setChecking] = createSignal(false)
   const [proxyList, setProxyList] = createStore([
     {
-      proxy: 'http://example.com:8080',
+      host: 'example.com',
+      port: '8080',
+      protocol: 'http:',
       time: 9999.99,
       check: false,
       status: false,
       log: '',
     },
   ])
+  onMount(() => {
+    if (localStorage.getItem('proxy')) {
+      const proxy = JSON.parse(localStorage.getItem('proxy') as string)
+      setProxy(proxy)
+    }
+    if (localStorage.getItem('proxyList')) {
+      const proxyList = JSON.parse(localStorage.getItem('proxyList') as string)
+      setProxyList(proxyList)
+    }
+  })
+  const [isFormat, setIsFormat] = createSignal(true)
+  const [pattern, setPattern] = createSignal(true)
+  const [spin, setSpin] = createSignal(false)
+  const [checking, setChecking] = createSignal(false)
 
   // 判断当前输入的代理格式是否正确
   const formatProxy = (value: string) => {
@@ -35,34 +47,25 @@ export default function Index() {
 
   // 检查代理方法
   const checkProxy = async () => {
+    // 判断当前是否正在检测
     if (checking())
       return
 
+    localStorage.setItem('proxy', JSON.stringify(proxy))
     setChecking(true)
-    setProxyList(0, 'proxy', `${proxy.protocol}//${proxy.host}:${proxy.port}`)
+    setProxyList(0, proxy)
     setProxyList(0, 'check', false)
     setProxyList(0, 'status', false)
     setProxyList(0, 'log', '检测中...')
+    localStorage.setItem('proxyList', JSON.stringify(proxyList))
 
-    const res = await CheckProxy(proxyList[0].proxy)
-    // console.log(res)
+    const res = await CheckProxy(`${proxyList[0].protocol}//${proxyList[0].host}:${proxyList[0].port}`)
+
     setChecking(false)
     setProxyList(0, 'check', true)
     setProxyList(0, 'status', res.status)
     setProxyList(0, 'time', res.time)
     setProxyList(0, 'log', res.info)
-    // .then((res) => {
-    //   setProxyList(0, 'check', true)
-    //   setProxyList(0, 'status', res.status)
-    //   setProxyList(0, 'time', res.time)
-    //   setProxyList(0, 'log', res.info)
-    // }).catch((err) => {
-    //   setProxyList(0, 'check', true)
-    //   setProxyList(0, 'status', false)
-    //   setProxyList(0, 'log', err)
-    //   setProxyList(0, 'time', 9999.99)
-    //   throw err
-    // })
   }
   const changePattern = () => {
     setSpin(true)
@@ -160,7 +163,7 @@ export default function Index() {
                           'border-b': i() !== proxyList.length - 1,
                         }
                       }>
-                        <td class="w-100 overflow-hidden text-ellipsis whitespace-nowrap px-6 py-4 font-medium">{item.proxy}</td>
+                        <td class="w-100 overflow-hidden text-ellipsis whitespace-nowrap px-6 py-4 font-medium">{`${item.protocol}//${item.host}:${item.port}`}</td>
                         <td class="w-40 whitespace-nowrap px-6 py-4">{item.time}ms</td>
                         <td class="w-60 whitespace-nowrap px-6 py-4">
                           <Show when={item.check}
